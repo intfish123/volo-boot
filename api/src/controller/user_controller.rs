@@ -13,7 +13,7 @@ pub async fn get_user(
     _req: ServerRequest,
 ) -> R<User> {
     let Some(rpc_cli) = ctx.rpc_cli_user else {
-        return R::error_status_code(StatusCode::GONE, "Gone")
+        return R::error_status_code(StatusCode::GONE, "Gone");
     };
 
     let Some(id) = param.get("id") else {
@@ -23,7 +23,6 @@ pub async fn get_user(
     let Some(str_id) = id.as_str() else {
         return R::error_status_code(StatusCode::BAD_REQUEST, "id 解析失败");
     };
-
 
     let Ok(id) = str_id.parse() else {
         return R::error_status_code(StatusCode::BAD_REQUEST, "id 解析失败");

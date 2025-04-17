@@ -8,11 +8,10 @@ impl user::UserService for S {
     async fn get_user(
         &self,
         _req: volo_grpc::Request<user::GetUserRequest>,
-    ) -> Result<volo_grpc::Response<user::User>, volo_grpc::Status>
-    {
+    ) -> Result<volo_grpc::Response<user::User>, volo_grpc::Status> {
         let req_data = _req.into_inner();
         tracing::info!("get_user: {:?}", req_data);
-        if let None = req_data.id {
+        if req_data.id.is_none() {
             return Err(volo_grpc::Status::not_found("User not found"));
         }
         let user = user::User {

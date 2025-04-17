@@ -4,10 +4,7 @@ use volo_http::http::{StatusCode, Uri};
 use volo_http::request::ServerRequest;
 use volo_http::response::ServerResponse;
 use volo_http::server::IntoResponse;
-use volo_http::{
-    context::ServerContext,
-    server::middleware::Next
-};
+use volo_http::{context::ServerContext, server::middleware::Next};
 
 pub fn setup_metrics_recorder() -> PrometheusHandle {
     const EXPONENTIAL_SECONDS: &[f64] = &[
@@ -23,10 +20,12 @@ pub fn setup_metrics_recorder() -> PrometheusHandle {
         .install_recorder()
         .unwrap()
 }
-pub async fn track_metrics(uri: Uri,
-                       cx: &mut ServerContext,
-                       req: ServerRequest,
-                       next: Next) -> Result<ServerResponse, StatusCode> {
+pub async fn track_metrics(
+    uri: Uri,
+    cx: &mut ServerContext,
+    req: ServerRequest,
+    next: Next,
+) -> Result<ServerResponse, StatusCode> {
     let start = Instant::now();
 
     let path = uri.path();
@@ -37,7 +36,7 @@ pub async fn track_metrics(uri: Uri,
     let latency = start.elapsed().as_secs_f64();
 
     let Ok(r) = response else {
-        return Ok(response.into_response())
+        return Ok(response.into_response());
     };
 
     let labels = [

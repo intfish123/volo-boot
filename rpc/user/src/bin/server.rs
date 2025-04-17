@@ -66,7 +66,7 @@ async fn main() {
             _ = int => tracing::info!("receive ctrl_c")
         }
 
-        if let Ok(_) = nacos_svc_inst {
+        if nacos_svc_inst.is_ok() {
             let _ret = common::svc::nacos::unregister_service(signal_nacos).await;
 
             tokio::time::sleep(Duration::from_secs(3)).await;
@@ -77,7 +77,9 @@ async fn main() {
 
     let server_task = tokio::spawn(async move {
         Server::new()
-            .add_service(ServiceBuilder::new(user_volo_gen::user::UserServiceServer::new(S)).build())
+            .add_service(
+                ServiceBuilder::new(user_volo_gen::user::UserServiceServer::new(S)).build(),
+            )
             .run_with_shutdown(addr, async {
                 let _ = shutdown_rx.changed().await;
                 Ok(())

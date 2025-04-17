@@ -28,9 +28,7 @@ impl Discover for NacosDiscover {
             let mut _ins_ret = vec![];
             for x in inst_list.iter() {
                 _ins_ret.push(Arc::new(Instance {
-                    address: volo::net::Address::from(Address::Ip(
-                        format!("{}:{}", x.ip, x.port).parse().unwrap(),
-                    )),
+                    address: Address::Ip(format!("{}:{}", x.ip, x.port).parse().unwrap()),
                     weight: x.weight as u32,
                     tags: Default::default(),
                 }));

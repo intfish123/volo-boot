@@ -77,7 +77,7 @@ async fn main() {
             _ = int => tracing::info!("receive ctrl_c")
         }
 
-        if let Ok(_) = nacos_svc_inst {
+        if nacos_svc_inst.is_ok() {
             let _ret = common::svc::nacos::unregister_service(signal_nacos).await;
 
             tokio::time::sleep(Duration::from_secs(3)).await;

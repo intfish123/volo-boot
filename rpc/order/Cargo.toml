@@ -13,45 +13,11 @@ volo-grpc.workspace = true
 pilota.workspace = true
 
 anyhow.workspace = true
-tokio = { workspace = true, features = ["full"] }
+tokio.workspace = true
 
-# 需要手动加的依赖 -- begin --
-tracing = "0.1"
+# 其他依赖
+tracing.workspace = true
 common = { path = "../../common" }
-serde = { version = "1.0.219", features = ["derive"] }
-clap = { version = "4.5", features = ["default", "derive"] }
-chrono = "0.4"
-# 需要手动加的依赖 -- end --
-
-[profile.release]
-opt-level = 3
-debug = true
-debug-assertions = false
-overflow-checks = false
-lto = true
-panic = 'unwind'
-incremental = false
-codegen-units = 1
-rpath = false
-
-[workspace]
-members = ["volo-gen"]
-resolver = "2"
-
-[workspace.package]
-edition = "2021"
-
-[workspace.dependencies]
-# we recommend to use the latest framework version for new features and bug fixes
-volo = "*"
-volo-build = "*"
-volo-grpc = "*"
-pilota = "*"
-
-anyhow = "1"
-futures = "0.3"
-tokio = "1"
-
-# 需要手动加的依赖 -- begin --
-serde = { version = "1", features = ["derive"] }
-# 需要手动加的依赖 -- end --
+serde.workspace = true
+clap.workspace = true
+chrono.workspace = true

@@ -1,7 +1,7 @@
 //! nacos服务注册与发现
 
 use anyhow::{anyhow, Result};
-use dashmap::{DashMap};
+use dashmap::DashMap;
 use nacos_sdk::api::constants;
 use nacos_sdk::api::naming::{
     NamingChangeEvent, NamingEventListener, NamingService, NamingServiceBuilder, ServiceInstance,
@@ -30,7 +30,12 @@ impl NacosNamingData {
     pub fn get_state(&self) -> NamingState {
         self.state.read().unwrap().clone()
     }
-    pub fn update_state(&self, service_name: String, group_name: Option<String>, service_instance: Vec<ServiceInstance>) {
+    pub fn update_state(
+        &self,
+        service_name: String,
+        group_name: Option<String>,
+        service_instance: Vec<ServiceInstance>,
+    ) {
         let mut state = self.state.write().unwrap();
         state.service_name = service_name;
         state.group_name = group_name;
@@ -67,14 +72,13 @@ pub async fn build_naming_server(
             enable_http_login = true;
         }
     }
-    let naming_service;
-    if enable_http_login {
-        naming_service = NamingServiceBuilder::new(client_props)
+    let naming_service = if enable_http_login {
+        NamingServiceBuilder::new(client_props)
             .enable_auth_plugin_http()
-            .build()?;
+            .build()?
     } else {
-        naming_service = NamingServiceBuilder::new(client_props).build()?;
-    }
+        NamingServiceBuilder::new(client_props).build()?
+    };
     Ok(NacosNamingData {
         naming: naming_service,
         state: RwLock::new(NamingState {
@@ -109,11 +113,7 @@ pub async fn register_service(
 
     let _register_inst_ret = nacos_naming_data
         .naming
-        .register_instance(
-            service_name.clone(),
-            group_name.clone(),
-            svc_inst.clone(),
-        )
+        .register_instance(service_name.clone(), group_name.clone(), svc_inst.clone())
         .await;
     match _register_inst_ret {
         Ok(_) => {
@@ -175,7 +175,8 @@ impl NamingEventListener for NacosNamingData {
     fn event(&self, event: Arc<NamingChangeEvent>) {
         tracing::info!("subscriber notify event={:?}", event.clone());
         let inst_list = event.instances.clone().unwrap_or_default();
-        self.sub_svc_map.insert(event.service_name.clone(), inst_list);
+        self.sub_svc_map
+            .insert(event.service_name.clone(), inst_list);
     }
 }
 
@@ -188,9 +189,11 @@ pub async fn subscribe_service(
 
     let state = temp_naming.get_state();
     let group_name = state.group_name;
-    match naming_service.subscribe(sub_service_name, group_name, Vec::default(), temp_naming).await {
+    match naming_service
+        .subscribe(sub_service_name, group_name, Vec::default(), temp_naming)
+        .await
+    {
         Ok(_) => Ok(()),
-        Err(e) => Err(anyhow!("subscribe_service error: {}", e))
+        Err(e) => Err(anyhow!("subscribe_service error: {}", e)),
     }
-
 }

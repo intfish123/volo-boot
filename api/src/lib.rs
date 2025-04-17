@@ -1,8 +1,8 @@
 pub mod app_config;
-pub mod svc_discover;
 pub mod consts;
-pub mod router;
 pub mod prometheus;
+pub mod router;
+pub mod svc_discover;
 
 pub mod controller;
 
@@ -13,7 +13,5 @@ use user::user::UserServiceClient;
 #[derive(Clone)]
 pub struct ServiceContext {
     pub rpc_cli_user: Option<UserServiceClient>,
-    pub rpc_cli_order: Option<OrderServiceClient>
+    pub rpc_cli_order: Option<OrderServiceClient>,
 }
-
-

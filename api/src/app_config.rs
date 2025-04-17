@@ -13,7 +13,7 @@ pub struct AppConfig {
 /// 服务发现配置
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct ServerDiscover {
-    pub nacos: NacosConfig
+    pub nacos: NacosConfig,
 }
 
 /// nacos
@@ -23,5 +23,5 @@ pub struct NacosConfig {
     pub namespace: Option<String>,
     pub username: Option<String>,
     pub password: Option<String>,
-    pub service_name: String
+    pub service_name: String,
 }
