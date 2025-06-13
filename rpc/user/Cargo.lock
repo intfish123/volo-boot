@@ -381,28 +381,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5b63caa9aa9397e2d9480a9b13673856c78d8ac123288526c37d7839f2a86990"
 
 [[package]]
-name = "common"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "atty",
- "chrono",
- "crossbeam",
- "dashmap 6.1.0",
- "local-ip-address",
- "mur3",
- "nacos-sdk",
- "num_cpus",
- "rand 0.8.5",
- "serde",
- "serde_json",
- "toml",
- "tracing",
- "tracing-appender",
- "tracing-subscriber",
-]
-
-[[package]]
 name = "concurrent-queue"
 version = "2.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1812,6 +1790,30 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "df94ce210e5bc13cb6651479fa48d14f601d9858cfe0467f43ae157023b938d3"
 
 [[package]]
+name = "pd-rs-common"
+version = "0.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0527b31b75ea2fc11778884e670ebd5225ff3f7888cc4307be30b8a2920af9d7"
+dependencies = [
+ "anyhow",
+ "atty",
+ "chrono",
+ "crossbeam",
+ "dashmap 6.1.0",
+ "local-ip-address",
+ "mur3",
+ "nacos-sdk",
+ "num_cpus",
+ "rand 0.8.5",
+ "serde",
+ "serde_json",
+ "toml",
+ "tracing",
+ "tracing-appender",
+ "tracing-subscriber",
+]
+
+[[package]]
 name = "percent-encoding"
 version = "2.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3074,7 +3076,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "clap",
- "common",
+ "pd-rs-common",
  "serde",
  "tokio",
  "tracing",

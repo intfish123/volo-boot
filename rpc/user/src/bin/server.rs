@@ -1,6 +1,6 @@
 use anyhow::anyhow;
 use clap::Parser;
-use common::load_config::LoadConfig;
+use pd_rs_common::load_config::LoadConfig;
 use std::net::SocketAddr;
 use std::sync::Arc;
 use std::time::Duration;
@@ -22,7 +22,7 @@ async fn main() {
     let args = Args::parse();
 
     // 这里不要使用 `let _ = xxx;` 的形式来接受返回结果，避免被立即drop掉导致日志声明周期有问题
-    let _logger_guard = common::logger::init_tracing();
+    let _logger_guard = pd_rs_common::logger::init_tracing();
 
     let config_file_path = args.config;
     let app_config = AppConfig::load_toml(config_file_path.as_str()).unwrap();
@@ -34,19 +34,17 @@ async fn main() {
     let nacos_config = app_config.sd.nacos;
 
     let nacos_naming_data = Arc::new(
-        common::svc::nacos::build_naming_server(
+        pd_rs_common::svc::nacos::NacosNamingAndConfigData::new(
             nacos_config.server_addr,
             nacos_config.namespace.unwrap_or("".to_string()),
             nacos_config.service_name.clone(),
             nacos_config.username,
             nacos_config.password,
         )
-        .await
         .unwrap(),
     );
 
-    let nacos_svc_inst = common::svc::nacos::register_service(
-        nacos_naming_data.clone(),
+    let nacos_svc_inst = nacos_naming_data.register_service(
         nacos_config.service_name,
         app_config.port as i32,
         Default::default(),
@@ -56,7 +54,6 @@ async fn main() {
     // 优雅停机
     let (shutdown_tx, mut shutdown_rx) = tokio::sync::watch::channel(());
 
-    let signal_nacos = nacos_naming_data.clone();
     let signal_task = tokio::spawn(async move {
         let mut term = signal::unix::signal(signal::unix::SignalKind::terminate())
             .map_err(|e| anyhow!("Failed to create SIGTERM handler: {}", e))?;
@@ -67,7 +64,7 @@ async fn main() {
         }
 
         if let Ok(_) = nacos_svc_inst {
-            let _ret = common::svc::nacos::unregister_service(signal_nacos).await;
+            let _ret = nacos_naming_data.unregister_service().await;
 
             tokio::time::sleep(Duration::from_secs(3)).await;
         }

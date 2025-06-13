@@ -117,14 +117,17 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "async-broadcast",
+ "bincode",
  "clap",
- "common",
  "dashmap 6.1.0",
  "lazy_static",
  "metrics",
  "metrics-exporter-prometheus",
+ "mur3",
  "nacos-sdk",
  "order",
+ "pd-rs-common",
+ "regex",
  "serde",
  "serde_json",
  "serde_yml",
@@ -290,6 +293,26 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "72b3254f16251a8381aa12e40e3c4d2f0199f8c6508fbecb9d91f575e0fbb8c6"
 
 [[package]]
+name = "bincode"
+version = "2.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "36eaf5d7b090263e8150820482d5d93cd964a81e4019913c972f4edcc6edb740"
+dependencies = [
+ "bincode_derive",
+ "serde",
+ "unty",
+]
+
+[[package]]
+name = "bincode_derive"
+version = "2.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bf95709a440f45e986983918d0e8a1f30a9b1df04918fc828670606804ac3c09"
+dependencies = [
+ "virtue",
+]
+
+[[package]]
 name = "bitflags"
 version = "1.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -404,28 +427,6 @@ name = "colorchoice"
 version = "1.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5b63caa9aa9397e2d9480a9b13673856c78d8ac123288526c37d7839f2a86990"
-
-[[package]]
-name = "common"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "atty",
- "chrono",
- "crossbeam",
- "dashmap 6.1.0",
- "local-ip-address",
- "mur3",
- "nacos-sdk",
- "num_cpus",
- "rand 0.8.5",
- "serde",
- "serde_json",
- "toml",
- "tracing",
- "tracing-appender",
- "tracing-subscriber",
-]
 
 [[package]]
 name = "concurrent-queue"
@@ -1952,8 +1953,8 @@ dependencies = [
  "anyhow",
  "chrono",
  "clap",
- "common",
  "order-volo-gen",
+ "pd-rs-common",
  "pilota",
  "serde",
  "tokio",
@@ -2058,6 +2059,31 @@ name = "pathdiff"
 version = "0.2.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "df94ce210e5bc13cb6651479fa48d14f601d9858cfe0467f43ae157023b938d3"
+
+[[package]]
+name = "pd-rs-common"
+version = "0.1.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0c259e109f1924ef3d5711bc3b77f71e2990ad62b62beec9604d12ef3c8170d0"
+dependencies = [
+ "anyhow",
+ "async-broadcast",
+ "atty",
+ "chrono",
+ "crossbeam",
+ "dashmap 6.1.0",
+ "local-ip-address",
+ "mur3",
+ "nacos-sdk",
+ "num_cpus",
+ "rand 0.8.5",
+ "serde",
+ "serde_json",
+ "toml",
+ "tracing",
+ "tracing-appender",
+ "tracing-subscriber",
+]
 
 [[package]]
 name = "percent-encoding"
@@ -3448,6 +3474,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "673aac59facbab8a9007c7f6108d11f63b603f7cabff99fabf650fea5c32b861"
 
 [[package]]
+name = "unty"
+version = "0.0.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6d49784317cd0d1ee7ec5c716dd598ec5b4483ea832a2dced265471cc0f690ae"
+
+[[package]]
 name = "url"
 version = "2.5.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3470,7 +3502,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "clap",
- "common",
+ "pd-rs-common",
  "serde",
  "tokio",
  "tracing",
@@ -3537,6 +3569,12 @@ name = "version_check"
 version = "0.9.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0b928f33d975fc6ad9f86c8f283853ad26bdd5b10b7f1542aa2fa15e2289105a"
+
+[[package]]
+name = "virtue"
+version = "0.0.18"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "051eb1abcf10076295e815102942cc58f9d5e3b4560e46e53c21e8ff6f3af7b1"
 
 [[package]]
 name = "volo"

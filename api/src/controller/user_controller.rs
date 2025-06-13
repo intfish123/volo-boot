@@ -1,3 +1,4 @@
+use regex::bytes;
 use crate::controller::R;
 use crate::ServiceContext;
 use user::user::{GetUserRequest, User};
@@ -5,6 +6,7 @@ use volo::loadbalance::RequestHash;
 use volo::METAINFO;
 use volo_http::request::ServerRequest;
 use volo_http::{http::StatusCode, server::extract::Query, Extension};
+use crate::consts::BINCODE_CONFIG_STANDARD;
 
 /// 通过id获取用户实体
 pub async fn get_user(
@@ -32,7 +34,9 @@ pub async fn get_user(
     // 如果 load_balance 用的ConsistentHashBalance, 则需要在本地变量（类似于java中的ThreadLocal变量）设置RequestHash
     // 每个请求会自动创建本地变量 METAINFO, 然后在自己的方法里面直接用就行, 参考: https://docs.rs/tokio/latest/tokio/task/struct.LocalKey.html
     METAINFO.with(|m| {
-        m.borrow_mut().insert(RequestHash(id as u64));
+        let bytes = bincode::encode_to_vec(id, BINCODE_CONFIG_STANDARD).unwrap();
+        let hash = mur3::murmurhash3_x64_128(bytes.as_slice(), 0).0;
+        m.borrow_mut().insert(RequestHash(hash));
     });
 
     // 请求user rpc服务，然后返回

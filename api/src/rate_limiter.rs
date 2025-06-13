@@ -1,29 +1,36 @@
 use crate::app_config::{AppConfig, DynamicConfig};
-use common::rate_limiter::memory_rate_limiter::MemoryRateLimiter;
-use common::rate_limiter::RateLimiter;
-use common::svc::nacos::NacosNamingAndConfigData;
 use dashmap::DashMap;
 use lazy_static::lazy_static;
-use std::fmt;
+use nacos_sdk::api::config::{ConfigChangeListener, ConfigResponse};
+use pd_rs_common::rate_limiter::memory_rate_limiter::MemoryRateLimiter;
+use pd_rs_common::rate_limiter::RateLimiter;
+use pd_rs_common::svc::nacos::NacosNamingAndConfigData;
 use std::sync::Arc;
-use std::time::Instant;
 use tokio::sync::OnceCell;
-use tokio_cron_scheduler::{Job, JobScheduler};
+use tokio_cron_scheduler::{JobScheduler};
 use volo_http::context::ServerContext;
 use volo_http::http::{StatusCode, Uri};
 use volo_http::request::ServerRequest;
 use volo_http::response::ServerResponse;
-use volo_http::server::IntoResponse;
 use volo_http::server::middleware::Next;
-use nacos_sdk::api::config::{ConfigChangeListener, ConfigResponse};
+use volo_http::server::IntoResponse;
+use regex::Regex;
 
 pub const DEFAULT_GROUP: &str = "DEFAULT_GROUP";
 
+
 lazy_static! {
-    static ref URL_LIMITER_MAP: DashMap<String, MemoryRateLimiter> = DashMap::new();
+    static ref URL_LIMITER_MAP: DashMap<String, ReteLimiterData> = DashMap::new();
 }
 
 static JOB_SCHEDULER: OnceCell<JobScheduler> = OnceCell::const_new();
+
+pub struct ReteLimiterData {
+    pub url: String,
+    pub url_regex: Regex,
+    pub method: String,
+    pub memory_rate_limiter: MemoryRateLimiter
+}
 
 pub struct RateLimiterConfigListener{
     pub data_id: String,
@@ -81,12 +88,11 @@ pub async fn init_limiter(
     //         }
     //     })
     // }).unwrap()).await;
-    // 
+    //
     // scheduler.start().await;
-    
-    
-    let content_ret = common::svc::nacos::get_config(
-        nacos_naming_and_config_data.clone(),
+
+
+    let content_ret = nacos_naming_and_config_data.get_config(
         app_config.sd.nacos.service_name.clone(),
         DEFAULT_GROUP.to_string(),
     )
@@ -102,8 +108,6 @@ pub async fn init_limiter(
     }
     let dynamic_config: DynamicConfig = dynamic_config_ret.unwrap();
     reset_limiter(dynamic_config);
-    
-    
 }
 
 
@@ -115,22 +119,40 @@ pub fn reset_limiter(dynamic_config: DynamicConfig) {
 
     let mut valid_keys: Vec<String> = vec![];
     for urc in url_rate {
+        let urc_clone = urc.clone();
         for m in urc.method {
             let lower_method = m.to_lowercase();
-            
             let key = format!("{}:{}", urc.url, lower_method);
             valid_keys.push(key.clone());
 
-            let r = URL_LIMITER_MAP.get(key.clone().as_str());
-            if let Some(r) = r {
-                let (init_capacity, fill_rate, shard_num) = r.get_config();
-                if init_capacity == 1 && fill_rate == urc.rate && shard_num == Some(1) {
-                    tracing::info!("reset_limiter skip for {}", key.clone());
-                    continue;
+            let mut skip = false;
+            for x in URL_LIMITER_MAP.iter() {
+                if x.url == urc.url && x.method == lower_method {
+                    let (a, b, c) = x.memory_rate_limiter.get_config();
+                    if a == 1 && b == urc.rate && c == Some(1) {
+                        skip = true;
+                        tracing::info!("skip reset limiter for {:?}", urc_clone);
+                        break;
+                    }
                 }
             }
-            URL_LIMITER_MAP.insert(key.clone(), MemoryRateLimiter::new(1, urc.rate, Some(1)));
-            tracing::info!("reset rate limiter for {}: {}", key, urc.rate);
+            if skip {
+                continue;
+            }
+
+            let reg_ret = Regex::new(urc.url.clone().as_str());
+            if let Ok(reg) = reg_ret {
+                let data = ReteLimiterData {
+                    url: urc.url.clone(),
+                    url_regex:reg,
+                    method: lower_method,
+                    memory_rate_limiter: MemoryRateLimiter::new(1, urc.rate, Some(1)),
+                };
+                URL_LIMITER_MAP.insert(key.clone(), data);
+                tracing::info!("reset rate limiter for {}: {}", key, urc.rate);
+            } else if let Err(e) = reg_ret {
+                tracing::error!("parse regex for {}: {}", urc.url.clone(), e);
+            }
         }
     }
     URL_LIMITER_MAP.retain(|k, _| valid_keys.contains(k));
@@ -143,13 +165,13 @@ pub async fn do_rate_limiter(
     next: Next,
 ) -> Result<ServerResponse, StatusCode> {
     let path = uri.path();
-    let method = req.method().clone();
+    let method = req.method().to_string().to_lowercase();
 
-    let key = format!("{}:{}", path, method.to_string().to_lowercase());
-    let limiter = URL_LIMITER_MAP.get(key.as_str());
-    if let Some(l) = limiter {
-        if !l.try_acquire(key, 1) {
-            return Err(StatusCode::TOO_MANY_REQUESTS);
+    for m in URL_LIMITER_MAP.iter() {
+        if m.url_regex.is_match(path) && m.method == method {
+            if !m.memory_rate_limiter.try_acquire(path.to_string(), 1) {
+                return Err(StatusCode::TOO_MANY_REQUESTS);
+            }
         }
     }
 
@@ -158,4 +180,15 @@ pub async fn do_rate_limiter(
         return Ok(response.into_response());
     };
     Ok(r)
+}
+
+#[cfg(test)]
+mod regex_test {
+    use regex::Regex;
+
+    #[test]
+    fn regex_test(){
+        let re = Regex::new("/user.*").unwrap();
+        assert_eq!(re.is_match("/user/query-one"), true);
+    }
 }

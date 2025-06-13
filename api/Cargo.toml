@@ -12,10 +12,12 @@ volo-http = { version = "*", features = ["default_server"] }
 tracing = "0.1"
 tokio = { version = "1", features = ["full"] }
 clap = { version = "4.5", features = ["default", "derive"] }
-common = {path = "../common"}
+# common = {path = "../common"}
+pd-rs-common = {version = "0.1"}
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 serde_yml = "*"
+bincode="2"
 anyhow = "1"
 async-broadcast="0.7"
 metrics = { version = "0.24", default-features = false }
@@ -24,6 +26,8 @@ lazy_static = "1.5"
 dashmap = { version = "6.1", features = ["serde"] }
 tokio-cron-scheduler = "*"
 nacos-sdk = { version = "0.5", features = ["default"] }
+regex="1.11"
+mur3="0.1"
 
 # rpc客户端引用
 user = {path = "../rpc/user"}
