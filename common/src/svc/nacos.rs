@@ -3,20 +3,29 @@
 use anyhow::{anyhow, Result};
 use dashmap::{DashMap};
 use nacos_sdk::api::constants;
-use nacos_sdk::api::naming::{
-    NamingChangeEvent, NamingEventListener, NamingService, NamingServiceBuilder, ServiceInstance,
+use nacos_sdk::api::{
+    naming::{
+        NamingChangeEvent, NamingEventListener, NamingService, NamingServiceBuilder, ServiceInstance,
+    },
+    config::{
+        ConfigService, ConfigServiceBuilder, ConfigChangeListener,
+    }
 };
 use nacos_sdk::api::props::ClientProps;
 use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
+use nacos_sdk::api::config::ConfigResponse;
 
 #[derive(Debug)]
-pub struct NacosNamingData {
+pub struct NacosNamingAndConfigData {
     naming: NamingService,
+    config: ConfigService,
 
     state: RwLock<NamingState>,
 
     pub sub_svc_map: DashMap<String, Vec<ServiceInstance>>,
+    
+    pub config_data_map: DashMap<String, ConfigResponse>,
 }
 
 #[derive(Clone, Debug, Default)]
@@ -26,7 +35,7 @@ pub struct NamingState {
     service_instance: Vec<ServiceInstance>,
 }
 
-impl NacosNamingData {
+impl NacosNamingAndConfigData {
     pub fn get_state(&self) -> NamingState {
         self.state.read().unwrap().clone()
     }
@@ -45,13 +54,13 @@ pub async fn build_naming_server(
     app_name: String,
     user_name: Option<String>,
     password: Option<String>,
-) -> Result<NacosNamingData> {
+) -> Result<NacosNamingAndConfigData> {
     // 因为它内部会初始化与服务端的长链接，后续的数据交互及变更订阅，都是实时地通过长链接告知客户端的。
 
     let mut client_props = ClientProps::new()
         // eg. "127.0.0.1:8848"
         .server_addr(server_addr)
-        .namespace(namespace)
+        .namespace(if namespace == "public" {""} else {namespace.as_str()})
         .app_name(app_name.clone());
 
     let mut enable_http_login = false;
@@ -68,27 +77,35 @@ pub async fn build_naming_server(
         }
     }
     let naming_service;
+    let config_service;
     if enable_http_login {
-        naming_service = NamingServiceBuilder::new(client_props)
+        naming_service = NamingServiceBuilder::new(client_props.clone())
             .enable_auth_plugin_http()
             .build()?;
+        config_service = ConfigServiceBuilder::new(client_props).enable_auth_plugin_http().build()?;
     } else {
-        naming_service = NamingServiceBuilder::new(client_props).build()?;
+        naming_service = NamingServiceBuilder::new(client_props.clone()).build()?;
+        config_service = ConfigServiceBuilder::new(client_props).build()?;
     }
-    Ok(NacosNamingData {
+    
+    
+    
+    Ok(NacosNamingAndConfigData {
         naming: naming_service,
+        config: config_service,
         state: RwLock::new(NamingState {
             service_name: "".to_string(),
             group_name: None,
             service_instance: Vec::new(),
         }),
         sub_svc_map: DashMap::new(),
+        config_data_map: DashMap::new(),
     })
 }
 
 /// 向nacos注册自己
 pub async fn register_service(
-    nacos_naming_data: Arc<NacosNamingData>,
+    nacos_naming_data: Arc<NacosNamingAndConfigData>,
     service_name: String,
     service_port: i32,
     service_metadata: HashMap<String, String>,
@@ -138,7 +155,7 @@ pub async fn register_service(
 }
 
 /// 从nacos注销
-pub async fn unregister_service(nacos_naming_data: Arc<NacosNamingData>) -> Result<()> {
+pub async fn unregister_service(nacos_naming_data: Arc<NacosNamingAndConfigData>) -> Result<()> {
     let naming_service = nacos_naming_data.naming.clone();
     let state = nacos_naming_data.get_state();
     let service_name = state.service_name;
@@ -171,7 +188,7 @@ pub async fn unregister_service(nacos_naming_data: Arc<NacosNamingData>) -> Resu
     }
 }
 
-impl NamingEventListener for NacosNamingData {
+impl NamingEventListener for NacosNamingAndConfigData {
     fn event(&self, event: Arc<NamingChangeEvent>) {
         tracing::info!("subscriber notify event={:?}", event.clone());
         let inst_list = event.instances.clone().unwrap_or_default();
@@ -179,8 +196,15 @@ impl NamingEventListener for NacosNamingData {
     }
 }
 
+impl ConfigChangeListener for NacosNamingAndConfigData {
+    fn notify(&self, config_resp: ConfigResponse) {
+        tracing::info!("config change event={:?}", config_resp.clone());
+        self.config_data_map.insert(config_resp.data_id().clone(), config_resp);
+    }
+}
+
 pub async fn subscribe_service(
-    nacos_naming_data: Arc<NacosNamingData>,
+    nacos_naming_data: Arc<NacosNamingAndConfigData>,
     sub_service_name: String,
 ) -> Result<()> {
     let temp_naming = nacos_naming_data;
@@ -192,5 +216,31 @@ pub async fn subscribe_service(
         Ok(_) => Ok(()),
         Err(e) => Err(anyhow!("subscribe_service error: {}", e))
     }
+}
 
+pub async fn add_config_listener(
+    nacos_naming_and_config_data: Arc<NacosNamingAndConfigData>,
+    data_id: String,
+    group_name: String,
+    listener: Arc<dyn ConfigChangeListener>
+) -> Result<()> {
+    let config_service = nacos_naming_and_config_data.config.clone();
+    let _listen = config_service.add_listener(data_id, group_name, listener).await;
+    match _listen {
+        Ok(_) => Ok(()),
+        Err(err) => Err(anyhow!("listen config error {:?}", err)),
+    }
+}
+
+pub async fn get_config(nacos_naming_and_config_data: Arc<NacosNamingAndConfigData>,
+                  data_id: String,
+                  group_name: String) -> Result<String> {
+    let ret = nacos_naming_and_config_data.config.get_config(data_id.clone(), group_name).await;
+    match ret { 
+        Ok(config) => {
+            nacos_naming_and_config_data.config_data_map.insert(data_id.clone(), config.clone());
+            Ok(config.content().clone())
+        },
+        Err(err) => Err(anyhow!("Failed to get config: {}", err)),
+    }
 }

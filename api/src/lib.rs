@@ -5,15 +5,15 @@ pub mod router;
 pub mod prometheus;
 
 pub mod controller;
+pub mod rate_limiter;
 
 use order::order::OrderServiceClient;
 use user::user::UserServiceClient;
 
-/// 这个结构体里面放每个rpc的客户端,目前只放了一个user的
-#[derive(Clone)]
+/// 这个结构体里面放每个rpc的客户端
+#[derive(Clone, Default)]
 pub struct ServiceContext {
     pub rpc_cli_user: Option<UserServiceClient>,
     pub rpc_cli_order: Option<OrderServiceClient>
 }
-
 

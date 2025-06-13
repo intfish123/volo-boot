@@ -1,6 +1,6 @@
 use anyhow::anyhow;
 use async_broadcast::Receiver;
-use common::svc::nacos::NacosNamingData;
+use common::svc::nacos::NacosNamingAndConfigData;
 use std::sync::Arc;
 use volo::context::Endpoint;
 use volo::discovery::{Change, Discover, Instance};
@@ -10,7 +10,7 @@ use volo::FastStr;
 
 #[derive(Clone)]
 pub struct NacosDiscover {
-    pub nacos_naming_data: Arc<NacosNamingData>,
+    pub nacos_naming_data: Arc<NacosNamingAndConfigData>,
 }
 impl Discover for NacosDiscover {
     type Key = FastStr;

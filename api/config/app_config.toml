@@ -4,13 +4,13 @@ port=8080
 # api网关服务需要订阅哪些服务
 subscribe_service=[
     "volo-boot-user.rpc",
-    "volo-boot-order.rpc",
+#    "volo-boot-order.rpc",
 ]
 
 # 服务发现 server discover
 [sd]
 [sd.nacos]
-server_addr="10.64.132.37:8848"
+server_addr="10.64.133.21:8848"
 namespace="public"
 username=""
 password=""

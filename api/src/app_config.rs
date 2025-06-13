@@ -25,3 +25,17 @@ pub struct NacosConfig {
     pub password: Option<String>,
     pub service_name: String
 }
+
+
+/// 从nacos中获取的配置
+#[derive(Default, Debug, Clone, Deserialize, Serialize)]
+pub struct DynamicConfig {
+    pub url_rate: Option<Vec<UrlRateConfig>>
+}
+
+#[derive(Default, Debug, Clone, Deserialize, Serialize)]
+pub struct UrlRateConfig {
+    pub url: String,
+    pub method: Vec<String>,
+    pub rate: u64
+}

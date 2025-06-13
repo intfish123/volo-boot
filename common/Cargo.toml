@@ -17,3 +17,8 @@ anyhow = "1"
 nacos-sdk = { version = "0.5", features = ["default"] }
 local-ip-address = "0.6.3"
 dashmap = { version = "6.1", features = ["serde"] }
+crossbeam = "0.8"
+num_cpus = "1"
+mur3="*"
+chrono="0.4"
+rand = "0.8.5"
