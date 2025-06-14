@@ -1,7 +1,7 @@
 use api::{consts, router, svc_discover, ServiceContext};
 use clap::Parser;
-use common::load_config::LoadConfig;
-use common::svc::nacos::NacosNamingData;
+use pd_rs_common::load_config::LoadConfig;
+use pd_rs_common::svc::nacos::{NacosNamingAndConfigData};
 use std::sync::Arc;
 use std::{net::SocketAddr, time::Duration};
 use volo_http::{
@@ -10,7 +10,7 @@ use volo_http::{
     server::{layer::TimeoutLayer, Router, Server},
     Address,
 };
-
+use api::rate_limiter::{init_limiter, RateLimiterConfigListener, DEFAULT_GROUP};
 use order::order::OrderServiceClient;
 use user::user::UserServiceClient;
 
@@ -31,40 +31,50 @@ async fn main() {
     let args = Args::parse();
 
     // 全局日志模块初始化
-    let _logger_guard = common::logger::init_tracing();
+    let _logger_guard = pd_rs_common::logger::init_tracing();
 
     // 加载配置
     let config_file_path = args.config;
     let app_config = api::app_config::AppConfig::load_toml(config_file_path.as_str()).unwrap();
+    let app_config_clone = app_config.clone();
 
     // 注册服务
     let nacos_config = app_config.sd.nacos;
 
     // 获取nacos naming service
     let nacos_naming_data = Arc::new(
-        common::svc::nacos::build_naming_server(
+        NacosNamingAndConfigData::new(
             nacos_config.server_addr,
             nacos_config.namespace.unwrap_or("".to_string()),
             nacos_config.service_name.clone(),
             nacos_config.username,
             nacos_config.password,
         )
-        .await
         .unwrap(),
     );
 
     // 注册
-    let _nacos_svc_inst = common::svc::nacos::register_service(
-        nacos_naming_data.clone(),
-        nacos_config.service_name,
+    let _nacos_svc_inst = nacos_naming_data.register_service(
+        nacos_config.service_name.clone(),
         app_config.port as i32,
         Default::default(),
     )
     .await;
 
     // 订阅rpc服务
-    let service_context = subscribe_service(nacos_naming_data, app_config.subscribe_service).await;
+    let service_context = subscribe_service(nacos_naming_data.clone(), app_config.subscribe_service).await;
 
+    // 获取配置
+    init_limiter(nacos_naming_data.clone(), app_config_clone.clone()).await;
+    
+    // 监听配置
+    let rate_limiter_lis = Arc::new(RateLimiterConfigListener{data_id: nacos_config.service_name.clone()});
+    match nacos_naming_data.add_config_listener(nacos_config.service_name.clone(), DEFAULT_GROUP.to_string(), rate_limiter_lis).await {
+        Ok(_) =>  tracing::info!("add config listener: {} {}", nacos_config.service_name, DEFAULT_GROUP.to_string()),
+        Err(e) => tracing::error!("add config listener err: {}", e),
+    }
+
+    
     // 启动http服务
     let app = Router::new()
         .merge(router::build_router(service_context))
@@ -82,23 +92,18 @@ async fn main() {
 }
 
 async fn subscribe_service(
-    nacos_naming_data: Arc<NacosNamingData>,
+    nacos_naming_data: Arc<NacosNamingAndConfigData>,
     service_names: Vec<String>,
 ) -> ServiceContext {
-    let mut ret = ServiceContext {
-        rpc_cli_user: None,
-        rpc_cli_order: None,
-    };
+    let mut ret: ServiceContext = Default::default();
 
     if !service_names.is_empty() {
-        let discover = svc_discover::NacosDiscover {
-            nacos_naming_data: nacos_naming_data.clone(),
-        };
+        let discover = svc_discover::NacosDiscover::new(nacos_naming_data.clone());
 
         tracing::info!("subscribe services: {}", service_names.join(", "));
         for sub_svc in service_names {
             let sub_ret =
-                common::svc::nacos::subscribe_service(nacos_naming_data.clone(), sub_svc.clone())
+                nacos_naming_data.subscribe_service(sub_svc.clone())
                     .await;
             match sub_ret {
                 Ok(_) => {

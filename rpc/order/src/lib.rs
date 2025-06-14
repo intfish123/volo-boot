@@ -12,6 +12,8 @@ impl order_volo_gen::order::OrderService for S {
     ) -> ::std::result::Result<::volo_grpc::Response<order_volo_gen::order::Order>, ::volo_grpc::Status>
     {
         let req_data = _req.into_inner();
+        tracing::info!("get_order: {:?}", req_data);
+
         if let Some(req_id) = req_data.id {
 
             // 虚假数据
@@ -23,7 +25,6 @@ impl order_volo_gen::order::OrderService for S {
                 create_at: chrono::Local::now().timestamp(),
                 extra: Default::default(),
             };
-
             return Ok(volo_grpc::Response::new(order));
         } else if let Some(user_id) = req_data.user_id {
             // 虚假数据

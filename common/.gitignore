@@ -1,6 +1,0 @@
-.DS_Store
-../.idea/
-.vscode/
-target/
-*.code-workspace
-logs

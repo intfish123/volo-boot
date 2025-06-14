@@ -6,6 +6,7 @@ use volo_http::{
     server::{middleware, route::get, IntoResponse},
     Extension, Router,
 };
+use crate::rate_limiter::{do_rate_limiter};
 
 /// 构建路由
 pub fn build_router(cxt: ServiceContext) -> Router {
@@ -22,6 +23,7 @@ pub fn build_router(cxt: ServiceContext) -> Router {
             get(controller::order_controller::get_order),
         )
         .layer(middleware::from_fn(track_metrics))
+        .layer(middleware::from_fn(do_rate_limiter))
         .layer(middleware::map_response(headers_map_response))
         .layer(Extension(cxt))
 }
