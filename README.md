@@ -1,7 +1,7 @@
 # volo-http 和 volo-rpc整合示例
 ## 目录结构
 * /api: 网关模块
-* ~~/common: 放一些公共组件代码, 如日志配置等~~ 已替换为: [pd-rs-common](https://docs.rs/pd-rs-common/0.1.2/pd_rs_common/)
+* ~~/common: 放一些公共组件代码, 如日志配置等~~ 已替换为: [pd-rs-common](https://docs.rs/pd-rs-common/latest/pd_rs_common)
 * /rpc: 放rpc服务
 
 ## 相关issue
