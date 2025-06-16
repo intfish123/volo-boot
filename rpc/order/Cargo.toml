@@ -17,7 +17,6 @@ tokio = { workspace = true, features = ["full"] }
 
 # 需要手动加的依赖 -- begin --
 tracing = "0.1"
-#common = { path = "../../common" }
 pd-rs-common = {version = "0.1"}
 serde = { version = "1.0.219", features = ["derive"] }
 clap = { version = "4.5", features = ["default", "derive"] }

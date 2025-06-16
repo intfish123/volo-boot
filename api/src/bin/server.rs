@@ -57,6 +57,8 @@ async fn main() {
     let _nacos_svc_inst = nacos_naming_data.register_service(
         nacos_config.service_name.clone(),
         app_config.port as i32,
+        None,
+        None,
         Default::default(),
     )
     .await;

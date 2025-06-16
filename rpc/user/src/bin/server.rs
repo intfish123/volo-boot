@@ -47,6 +47,8 @@ async fn main() {
     let nacos_svc_inst = nacos_naming_data.register_service(
         nacos_config.service_name,
         app_config.port as i32,
+        None,
+        None,
         Default::default(),
     )
     .await;
@@ -64,7 +66,7 @@ async fn main() {
         }
 
         if let Ok(_) = nacos_svc_inst {
-            let _ret = nacos_naming_data.unregister_service().await;
+            let _ret = nacos_naming_data.deregister_service().await;
 
             tokio::time::sleep(Duration::from_secs(3)).await;
         }

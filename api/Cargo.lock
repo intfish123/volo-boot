@@ -2062,9 +2062,9 @@ checksum = "df94ce210e5bc13cb6651479fa48d14f601d9858cfe0467f43ae157023b938d3"
 
 [[package]]
 name = "pd-rs-common"
-version = "0.1.4"
+version = "0.1.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0c259e109f1924ef3d5711bc3b77f71e2990ad62b62beec9604d12ef3c8170d0"
+checksum = "85e5e179567dab4b4d631a93c36f83e720336033337052658fe318f478cb4196"
 dependencies = [
  "anyhow",
  "async-broadcast",
