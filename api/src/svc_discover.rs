@@ -41,7 +41,7 @@ impl NacosDiscover {
             loop {
                 match r.recv().await {
                     Ok(recv) => {
-                        tracing::info!("Received svc change event: {:?}", recv);
+                        tracing::info!("received svc change event: {:?}", recv);
                         let key: FastStr = recv.service_name.clone().into();
                         if let Some(is) = recv.instances.clone() {
                             let mut new_instance = Vec::with_capacity(is.len());
