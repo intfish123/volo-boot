@@ -1,11 +1,11 @@
 use anyhow::anyhow;
 use async_broadcast::{Receiver, RecvError};
+use dashmap::DashMap;
 use pd_rs_common::svc::nacos::NacosNamingAndConfigData;
 use std::sync::Arc;
-use dashmap::DashMap;
 use tracing::warn;
 use volo::context::Endpoint;
-use volo::discovery::{Change, Discover, Instance, diff_address};
+use volo::discovery::{diff_address, Change, Discover, Instance};
 use volo::loadbalance::error::LoadBalanceError;
 use volo::net::Address;
 use volo::FastStr;
@@ -15,23 +15,26 @@ pub struct NacosDiscover {
     pub nacos_naming_data: Arc<NacosNamingAndConfigData>,
     pub svc_change_sender: async_broadcast::Sender<Change<FastStr>>,
     pub svc_change_receiver: async_broadcast::Receiver<Change<FastStr>>,
-    pub current_svc_instance: Arc<DashMap<FastStr, Vec<Arc<Instance>>>>
+    pub current_svc_instance: Arc<DashMap<FastStr, Vec<Arc<Instance>>>>,
 }
 
 impl NacosDiscover {
     pub fn new(inner: Arc<NacosNamingAndConfigData>) -> Self {
-        
         let (mut svc_ch_s, svc_ch_r) = async_broadcast::broadcast(100);
         svc_ch_s.set_overflow(true);
 
-        let ret = Self{
+        let ret = Self {
             nacos_naming_data: inner,
             svc_change_sender: svc_ch_s,
             svc_change_receiver: svc_ch_r,
             current_svc_instance: Arc::new(DashMap::new()),
         };
 
-        let mut r = ret.nacos_naming_data.event_listener.sub_svc_change_receiver.clone();
+        let mut r = ret
+            .nacos_naming_data
+            .event_listener
+            .sub_svc_change_receiver
+            .clone();
         let s = ret.svc_change_sender.clone();
         let current_svc_instance = ret.current_svc_instance.clone();
         tokio::spawn(async move {
@@ -49,10 +52,14 @@ impl NacosDiscover {
                                         weight: x.weight as u32,
                                         tags: Default::default(),
                                     })),
-                                    Err(e) => tracing::error!("failed to parse instance address: {:?}, err: {}", x, e),
+                                    Err(e) => tracing::error!(
+                                        "failed to parse instance address: {:?}, err: {}",
+                                        x,
+                                        e
+                                    ),
                                 }
                             }
-                            
+
                             let mut pre_svc_instance = vec![];
                             match current_svc_instance.get(key.as_str()) {
                                 Some(instance) => {
@@ -60,28 +67,28 @@ impl NacosDiscover {
                                 }
                                 None => {}
                             }
-                            
-                            let (ch, is_change) = diff_address(key.clone(), pre_svc_instance, new_instance.clone());
+
+                            let (ch, is_change) =
+                                diff_address(key.clone(), pre_svc_instance, new_instance.clone());
                             if is_change {
                                 current_svc_instance.insert(key, new_instance);
                             }
-                            
+
                             // always broadcast
                             let _ = s.try_broadcast(ch);
                         }
-                        
-                    },
+                    }
                     Err(err) => {
-                        match err { 
+                        match err {
                             // if the channel is closed, break
                             RecvError::Closed => break,
-                            _ => warn!("nacos discovering subscription error: {:?}", err)
+                            _ => warn!("nacos discovering subscription error: {:?}", err),
                         }
-                    },
+                    }
                 }
             }
         });
-        
+
         ret
     }
 }
@@ -95,10 +102,11 @@ impl Discover for NacosDiscover {
         endpoint: &'s Endpoint,
     ) -> Result<Vec<Arc<Instance>>, Self::Error> {
         let key = endpoint.service_name.clone();
-        
+
         let inst_list = self
             .nacos_naming_data
-            .event_listener.sub_svc_map
+            .event_listener
+            .sub_svc_map
             .get(key.as_str());
         if let Some(inst_list) = inst_list {
             let mut new_instance = Vec::with_capacity(inst_list.len());
@@ -109,10 +117,12 @@ impl Discover for NacosDiscover {
                         weight: x.weight as u32,
                         tags: Default::default(),
                     })),
-                    Err(e) => tracing::error!("failed to parse instance address: {:?}, err: {}", x, e),
+                    Err(e) => {
+                        tracing::error!("failed to parse instance address: {:?}, err: {}", x, e)
+                    }
                 }
             }
-            
+
             self.current_svc_instance.insert(key, new_instance.clone());
             Ok(new_instance)
         } else {
