@@ -5,19 +5,18 @@ use nacos_sdk::api::config::{ConfigChangeListener, ConfigResponse};
 use pd_rs_common::rate_limiter::memory_rate_limiter::MemoryRateLimiter;
 use pd_rs_common::rate_limiter::RateLimiter;
 use pd_rs_common::svc::nacos::NacosNamingAndConfigData;
+use regex::Regex;
 use std::sync::Arc;
 use tokio::sync::OnceCell;
-use tokio_cron_scheduler::{JobScheduler};
+use tokio_cron_scheduler::JobScheduler;
 use volo_http::context::ServerContext;
 use volo_http::http::{StatusCode, Uri};
 use volo_http::request::ServerRequest;
 use volo_http::response::ServerResponse;
 use volo_http::server::middleware::Next;
 use volo_http::server::IntoResponse;
-use regex::Regex;
 
 pub const DEFAULT_GROUP: &str = "DEFAULT_GROUP";
-
 
 lazy_static! {
     static ref URL_LIMITER_MAP: DashMap<String, ReteLimiterData> = DashMap::new();
@@ -29,10 +28,10 @@ pub struct ReteLimiterData {
     pub url: String,
     pub url_regex: Regex,
     pub method: String,
-    pub memory_rate_limiter: MemoryRateLimiter
+    pub memory_rate_limiter: MemoryRateLimiter,
 }
 
-pub struct RateLimiterConfigListener{
+pub struct RateLimiterConfigListener {
     pub data_id: String,
 }
 
@@ -55,10 +54,12 @@ impl ConfigChangeListener for RateLimiterConfigListener {
 }
 
 pub async fn get_job_scheduler() -> &'static JobScheduler {
-    JOB_SCHEDULER.get_or_init(|| async {
-        let sched = JobScheduler::new().await.unwrap();
-        sched
-    }).await
+    JOB_SCHEDULER
+        .get_or_init(|| async {
+            let sched = JobScheduler::new().await.unwrap();
+            sched
+        })
+        .await
 }
 
 pub async fn init_limiter(
@@ -91,15 +92,15 @@ pub async fn init_limiter(
     //
     // scheduler.start().await;
 
-
-    let content_ret = nacos_naming_and_config_data.get_config(
-        app_config.sd.nacos.service_name.clone(),
-        DEFAULT_GROUP.to_string(),
-    )
-    .await;
+    let content_ret = nacos_naming_and_config_data
+        .get_config(
+            app_config.sd.nacos.service_name.clone(),
+            DEFAULT_GROUP.to_string(),
+        )
+        .await;
     let Ok(content) = content_ret else {
         tracing::error!("get config content failed");
-        return
+        return;
     };
     let dynamic_config_ret = serde_yml::from_str(content.as_str());
     if dynamic_config_ret.is_err() {
@@ -109,8 +110,6 @@ pub async fn init_limiter(
     let dynamic_config: DynamicConfig = dynamic_config_ret.unwrap();
     reset_limiter(dynamic_config);
 }
-
-
 
 pub fn reset_limiter(dynamic_config: DynamicConfig) {
     let Some(url_rate) = dynamic_config.url_rate else {
@@ -144,7 +143,7 @@ pub fn reset_limiter(dynamic_config: DynamicConfig) {
             if let Ok(reg) = reg_ret {
                 let data = ReteLimiterData {
                     url: urc.url.clone(),
-                    url_regex:reg,
+                    url_regex: reg,
                     method: lower_method,
                     memory_rate_limiter: MemoryRateLimiter::new(1, urc.rate, Some(1)),
                 };
@@ -187,7 +186,7 @@ mod regex_test {
     use regex::Regex;
 
     #[test]
-    fn regex_test(){
+    fn regex_test() {
         let re = Regex::new("/user.*").unwrap();
         assert_eq!(re.is_match("/user/query-one"), true);
     }

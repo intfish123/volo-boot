@@ -3,11 +3,11 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct AppConfig {
     pub port: u32,
-    pub sd: ServerDiscover
+    pub sd: ServerDiscover,
 }
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct ServerDiscover {
-    pub nacos: NacosConfig
+    pub nacos: NacosConfig,
 }
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct NacosConfig {
@@ -15,5 +15,5 @@ pub struct NacosConfig {
     pub namespace: Option<String>,
     pub username: Option<String>,
     pub password: Option<String>,
-    pub service_name: String
+    pub service_name: String,
 }

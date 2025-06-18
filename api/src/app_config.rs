@@ -13,7 +13,7 @@ pub struct AppConfig {
 /// 服务发现配置
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct ServerDiscover {
-    pub nacos: NacosConfig
+    pub nacos: NacosConfig,
 }
 
 /// nacos
@@ -23,19 +23,18 @@ pub struct NacosConfig {
     pub namespace: Option<String>,
     pub username: Option<String>,
     pub password: Option<String>,
-    pub service_name: String
+    pub service_name: String,
 }
-
 
 /// 从nacos中获取的配置
 #[derive(Default, Debug, Clone, Deserialize, Serialize)]
 pub struct DynamicConfig {
-    pub url_rate: Option<Vec<UrlRateConfig>>
+    pub url_rate: Option<Vec<UrlRateConfig>>,
 }
 
 #[derive(Default, Debug, Clone, Deserialize, Serialize)]
 pub struct UrlRateConfig {
     pub url: String,
     pub method: Vec<String>,
-    pub rate: u64
+    pub rate: u64,
 }

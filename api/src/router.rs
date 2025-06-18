@@ -1,4 +1,5 @@
 use crate::prometheus::{setup_metrics_recorder, track_metrics};
+use crate::rate_limiter::do_rate_limiter;
 use crate::{controller, ServiceContext};
 use std::future::ready;
 use volo_http::{
@@ -6,7 +7,6 @@ use volo_http::{
     server::{middleware, route::get, IntoResponse},
     Extension, Router,
 };
-use crate::rate_limiter::{do_rate_limiter};
 
 /// 构建路由
 pub fn build_router(cxt: ServiceContext) -> Router {

@@ -1,12 +1,12 @@
-use regex::bytes;
+use crate::consts::BINCODE_CONFIG_STANDARD;
 use crate::controller::R;
 use crate::ServiceContext;
+use regex::bytes;
 use user::user::{GetUserRequest, User};
 use volo::loadbalance::RequestHash;
 use volo::METAINFO;
 use volo_http::request::ServerRequest;
 use volo_http::{http::StatusCode, server::extract::Query, Extension};
-use crate::consts::BINCODE_CONFIG_STANDARD;
 
 /// 通过id获取用户实体
 pub async fn get_user(
@@ -15,7 +15,7 @@ pub async fn get_user(
     _req: ServerRequest,
 ) -> R<User> {
     let Some(rpc_cli) = ctx.rpc_cli_user else {
-        return R::error_status_code(StatusCode::GONE, "Gone")
+        return R::error_status_code(StatusCode::GONE, "Gone");
     };
 
     let Some(id) = param.get("id") else {
@@ -25,7 +25,6 @@ pub async fn get_user(
     let Some(str_id) = id.as_str() else {
         return R::error_status_code(StatusCode::BAD_REQUEST, "id 解析失败");
     };
-
 
     let Ok(id) = str_id.parse() else {
         return R::error_status_code(StatusCode::BAD_REQUEST, "id 解析失败");

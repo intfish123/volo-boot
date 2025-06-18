@@ -1,8 +1,8 @@
 use anyhow::anyhow;
 use clap::Parser;
-use pd_rs_common::load_config::LoadConfig;
 use order::app_config::AppConfig;
 use order::S;
+use pd_rs_common::load_config::LoadConfig;
 use std::net::SocketAddr;
 use std::sync::Arc;
 use std::time::Duration;
@@ -55,14 +55,15 @@ async fn main() {
         .unwrap(),
     );
 
-    let nacos_svc_inst = nacos_naming_data.register_service(
-        nacos_config.service_name,
-        app_config.port as i32,
-        None,
-        None,
-        Default::default(),
-    )
-    .await;
+    let nacos_svc_inst = nacos_naming_data
+        .register_service(
+            nacos_config.service_name,
+            app_config.port as i32,
+            None,
+            None,
+            Default::default(),
+        )
+        .await;
 
     // 优雅停机
     let (shutdown_tx, mut shutdown_rx) = tokio::sync::watch::channel(());

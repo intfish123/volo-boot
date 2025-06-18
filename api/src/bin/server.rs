@@ -1,18 +1,18 @@
+use api::rate_limiter::{init_limiter, RateLimiterConfigListener, DEFAULT_GROUP};
 use api::{consts, router, svc_discover, ServiceContext};
 use clap::Parser;
+use order::order::OrderServiceClient;
 use pd_rs_common::load_config::LoadConfig;
-use pd_rs_common::svc::nacos::{NacosNamingAndConfigData};
+use pd_rs_common::svc::nacos::NacosNamingAndConfigData;
 use std::sync::Arc;
 use std::{net::SocketAddr, time::Duration};
+use user::user::UserServiceClient;
 use volo_http::{
     context::ServerContext,
     http::StatusCode,
     server::{layer::TimeoutLayer, Router, Server},
     Address,
 };
-use api::rate_limiter::{init_limiter, RateLimiterConfigListener, DEFAULT_GROUP};
-use order::order::OrderServiceClient;
-use user::user::UserServiceClient;
 
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
@@ -54,29 +54,43 @@ async fn main() {
     );
 
     // 注册
-    let _nacos_svc_inst = nacos_naming_data.register_service(
-        nacos_config.service_name.clone(),
-        app_config.port as i32,
-        None,
-        None,
-        Default::default(),
-    )
-    .await;
+    let _nacos_svc_inst = nacos_naming_data
+        .register_service(
+            nacos_config.service_name.clone(),
+            app_config.port as i32,
+            None,
+            None,
+            Default::default(),
+        )
+        .await;
 
     // 订阅rpc服务
-    let service_context = subscribe_service(nacos_naming_data.clone(), app_config.subscribe_service).await;
+    let service_context =
+        subscribe_service(nacos_naming_data.clone(), app_config.subscribe_service).await;
 
     // 获取配置
     init_limiter(nacos_naming_data.clone(), app_config_clone.clone()).await;
-    
+
     // 监听配置
-    let rate_limiter_lis = Arc::new(RateLimiterConfigListener{data_id: nacos_config.service_name.clone()});
-    match nacos_naming_data.add_config_listener(nacos_config.service_name.clone(), DEFAULT_GROUP.to_string(), rate_limiter_lis).await {
-        Ok(_) =>  tracing::info!("add config listener: {} {}", nacos_config.service_name, DEFAULT_GROUP.to_string()),
+    let rate_limiter_lis = Arc::new(RateLimiterConfigListener {
+        data_id: nacos_config.service_name.clone(),
+    });
+    match nacos_naming_data
+        .add_config_listener(
+            nacos_config.service_name.clone(),
+            DEFAULT_GROUP.to_string(),
+            rate_limiter_lis,
+        )
+        .await
+    {
+        Ok(_) => tracing::info!(
+            "add config listener: {} {}",
+            nacos_config.service_name,
+            DEFAULT_GROUP.to_string()
+        ),
         Err(e) => tracing::error!("add config listener err: {}", e),
     }
 
-    
     // 启动http服务
     let app = Router::new()
         .merge(router::build_router(service_context))
@@ -104,9 +118,7 @@ async fn subscribe_service(
 
         tracing::info!("subscribe services: {}", service_names.join(", "));
         for sub_svc in service_names {
-            let sub_ret =
-                nacos_naming_data.subscribe_service(sub_svc.clone())
-                    .await;
+            let sub_ret = nacos_naming_data.subscribe_service(sub_svc.clone()).await;
             match sub_ret {
                 Ok(_) => {
                     tracing::info!("subscribe service: {} success.", sub_svc.clone());

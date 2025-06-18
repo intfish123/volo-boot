@@ -12,7 +12,7 @@ pub async fn get_order(
 ) -> R<Order> {
     // 如果 order rpc 服务为空，直接返回错误码
     let Some(rpc_cli) = ctx.rpc_cli_order else {
-        return R::error_status_code(StatusCode::GONE, "Gone")
+        return R::error_status_code(StatusCode::GONE, "Gone");
     };
 
     // 获取参数

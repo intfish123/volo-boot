@@ -44,14 +44,15 @@ async fn main() {
         .unwrap(),
     );
 
-    let nacos_svc_inst = nacos_naming_data.register_service(
-        nacos_config.service_name,
-        app_config.port as i32,
-        None,
-        None,
-        Default::default(),
-    )
-    .await;
+    let nacos_svc_inst = nacos_naming_data
+        .register_service(
+            nacos_config.service_name,
+            app_config.port as i32,
+            None,
+            None,
+            Default::default(),
+        )
+        .await;
 
     // 优雅停机
     let (shutdown_tx, mut shutdown_rx) = tokio::sync::watch::channel(());
@@ -76,7 +77,9 @@ async fn main() {
 
     let server_task = tokio::spawn(async move {
         Server::new()
-            .add_service(ServiceBuilder::new(user_volo_gen::user::UserServiceServer::new(S)).build())
+            .add_service(
+                ServiceBuilder::new(user_volo_gen::user::UserServiceServer::new(S)).build(),
+            )
             .run_with_shutdown(addr, async {
                 let _ = shutdown_rx.changed().await;
                 Ok(())

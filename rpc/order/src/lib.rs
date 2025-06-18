@@ -9,13 +9,14 @@ impl order_volo_gen::order::OrderService for S {
     async fn get_order(
         &self,
         _req: ::volo_grpc::Request<order_volo_gen::order::GetOrderRequest>,
-    ) -> ::std::result::Result<::volo_grpc::Response<order_volo_gen::order::Order>, ::volo_grpc::Status>
-    {
+    ) -> ::std::result::Result<
+        ::volo_grpc::Response<order_volo_gen::order::Order>,
+        ::volo_grpc::Status,
+    > {
         let req_data = _req.into_inner();
         tracing::info!("get_order: {:?}", req_data);
 
         if let Some(req_id) = req_data.id {
-
             // 虚假数据
             let order = order::Order {
                 id: req_id,
