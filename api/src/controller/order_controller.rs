@@ -48,10 +48,10 @@ pub async fn get_order(
             .await;
     } else if let Some(user_id) = user_id {
         let Some(str_user_id) = user_id.as_str() else {
-            return return R::error_status_code(StatusCode::BAD_REQUEST, "user_id 解析失败");
+            return R::error_status_code(StatusCode::BAD_REQUEST, "user_id 解析失败");
         };
         let Ok(usr_id) = str_user_id.parse() else {
-            return return R::error_status_code(StatusCode::BAD_REQUEST, "user_id 解析失败");
+            return R::error_status_code(StatusCode::BAD_REQUEST, "user_id 解析失败");
         };
         // 请求user rpc服务，然后返回
         ret = rpc_cli

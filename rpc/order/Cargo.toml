@@ -43,7 +43,7 @@ edition = "2021"
 
 [workspace.dependencies]
 # we recommend to use the latest framework version for new features and bug fixes
-volo = "0.10"
+volo = "*"
 volo-build = "*"
 volo-grpc = "*"
 pilota = "*"
