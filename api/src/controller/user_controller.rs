@@ -5,14 +5,14 @@ use regex::bytes;
 use user::user::{GetUserRequest, User};
 use volo::loadbalance::RequestHash;
 use volo::METAINFO;
-use volo_http::request::ServerRequest;
-use volo_http::{http::StatusCode, server::extract::Query, Extension};
+use volo_http::request::Request;
+use volo_http::{http::StatusCode, server::extract::Query, utils::Extension};
 
 /// 通过id获取用户实体
 pub async fn get_user(
     Extension(ctx): Extension<ServiceContext>,
     Query(param): Query<serde_json::Value>,
-    _req: ServerRequest,
+    _req: Request,
 ) -> R<User> {
     let Some(rpc_cli) = ctx.rpc_cli_user else {
         return R::error_status_code(StatusCode::GONE, "Gone");

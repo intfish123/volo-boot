@@ -11,8 +11,8 @@ use tokio::sync::OnceCell;
 use tokio_cron_scheduler::JobScheduler;
 use volo_http::context::ServerContext;
 use volo_http::http::{StatusCode, Uri};
-use volo_http::request::ServerRequest;
-use volo_http::response::ServerResponse;
+use volo_http::request::{Request};
+use volo_http::response::{Response};
 use volo_http::server::middleware::Next;
 use volo_http::server::IntoResponse;
 
@@ -160,9 +160,9 @@ pub fn reset_limiter(dynamic_config: DynamicConfig) {
 pub async fn do_rate_limiter(
     uri: Uri,
     cx: &mut ServerContext,
-    req: ServerRequest,
+    req: Request,
     next: Next,
-) -> Result<ServerResponse, StatusCode> {
+) -> Result<Response, StatusCode> {
     let path = uri.path();
     let method = req.method().to_string().to_lowercase();
 

@@ -3,9 +3,9 @@ use crate::rate_limiter::do_rate_limiter;
 use crate::{controller, ServiceContext};
 use std::future::ready;
 use volo_http::{
-    response::ServerResponse,
+    response::Response,
     server::{middleware, route::get, IntoResponse},
-    Extension, Router,
+    Router, utils::Extension
 };
 
 /// 构建路由
@@ -28,7 +28,7 @@ pub fn build_router(cxt: ServiceContext) -> Router {
         .layer(Extension(cxt))
 }
 
-async fn headers_map_response(response: ServerResponse) -> impl IntoResponse {
+async fn headers_map_response(response: Response) -> impl IntoResponse {
     (
         [
             ("Access-Control-Allow-Origin", "*"),

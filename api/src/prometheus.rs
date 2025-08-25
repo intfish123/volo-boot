@@ -1,8 +1,8 @@
 use metrics_exporter_prometheus::{Matcher, PrometheusBuilder, PrometheusHandle};
 use std::time::Instant;
 use volo_http::http::{StatusCode, Uri};
-use volo_http::request::ServerRequest;
-use volo_http::response::ServerResponse;
+use volo_http::request::Request;
+use volo_http::response::Response;
 use volo_http::server::IntoResponse;
 use volo_http::{context::ServerContext, server::middleware::Next};
 
@@ -23,9 +23,9 @@ pub fn setup_metrics_recorder() -> PrometheusHandle {
 pub async fn track_metrics(
     uri: Uri,
     cx: &mut ServerContext,
-    req: ServerRequest,
+    req: Request,
     next: Next,
-) -> Result<ServerResponse, StatusCode> {
+) -> Result<Response, StatusCode> {
     let start = Instant::now();
 
     let path = uri.path();

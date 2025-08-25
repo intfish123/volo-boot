@@ -2,9 +2,9 @@ use serde::{Deserialize, Serialize};
 use std::fmt;
 use std::fmt::Formatter;
 use volo_http::http::StatusCode;
-use volo_http::response::ServerResponse;
+use volo_http::response::Response;
+use volo_http::server::extract::Json;
 use volo_http::server::IntoResponse;
-use volo_http::Json;
 
 pub mod order_controller;
 pub mod user_controller;
@@ -89,7 +89,7 @@ impl<T: fmt::Debug> fmt::Display for R<T> {
 }
 
 impl<T: Serialize> IntoResponse for R<T> {
-    fn into_response(self) -> ServerResponse {
+    fn into_response(self) -> Response {
         let status = match self.code {
             200..=299 => StatusCode::OK,
             400..=499 => StatusCode::BAD_REQUEST,
