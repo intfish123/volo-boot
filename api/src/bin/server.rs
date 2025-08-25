@@ -31,7 +31,7 @@ async fn main() {
     let args = Args::parse();
 
     // 全局日志模块初始化
-    let _logger_guard = pd_rs_common::logger::init_tracing();
+    let _logger_guard = pd_rs_common::logger::init_tracing(Some(2));
 
     // 加载配置
     let config_file_path = args.config;
