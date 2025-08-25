@@ -5,7 +5,8 @@ use std::future::ready;
 use volo_http::{
     response::Response,
     server::{middleware, route::get, IntoResponse},
-    Router, utils::Extension
+    utils::Extension,
+    Router,
 };
 
 /// 构建路由

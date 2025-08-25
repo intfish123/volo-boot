@@ -1,7 +1,6 @@
 use crate::consts::BINCODE_CONFIG_STANDARD;
 use crate::controller::R;
 use crate::ServiceContext;
-use regex::bytes;
 use user::user::{GetUserRequest, User};
 use volo::loadbalance::RequestHash;
 use volo::METAINFO;

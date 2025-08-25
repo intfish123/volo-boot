@@ -11,8 +11,8 @@ use tokio::sync::OnceCell;
 use tokio_cron_scheduler::JobScheduler;
 use volo_http::context::ServerContext;
 use volo_http::http::{StatusCode, Uri};
-use volo_http::request::{Request};
-use volo_http::response::{Response};
+use volo_http::request::Request;
+use volo_http::response::Response;
 use volo_http::server::middleware::Next;
 use volo_http::server::IntoResponse;
 
