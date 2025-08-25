@@ -1913,9 +1913,9 @@ checksum = "df94ce210e5bc13cb6651479fa48d14f601d9858cfe0467f43ae157023b938d3"
 
 [[package]]
 name = "pd-rs-common"
-version = "0.1.8"
+version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8de565e0af50d7fa593f581d50f18d809fc78148e8ef81f28241694912d3a206"
+checksum = "0fcd2247914d6ee958a16ee28a3ae665a98667e7571fffd8e3fb63456dffa619"
 dependencies = [
  "anyhow",
  "async-broadcast",
@@ -1929,7 +1929,6 @@ dependencies = [
  "num_cpus",
  "rand 0.8.5",
  "serde",
- "serde_json",
  "toml 0.8.23",
  "tracing",
  "tracing-appender",

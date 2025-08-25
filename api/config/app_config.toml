@@ -1,5 +1,9 @@
 # 服务运行端口
 port=8080
+
+# prometheus metrics抓取指标端口, 如果不指定再默认与${port}一致
+metric_port=9001
+
 #timeout=10
 # api网关服务需要订阅哪些服务
 subscribe_service=[

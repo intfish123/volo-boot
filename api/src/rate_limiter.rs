@@ -166,10 +166,12 @@ pub async fn do_rate_limiter(
     let path = uri.path();
     let method = req.method().to_string().to_lowercase();
 
-    for m in URL_LIMITER_MAP.iter() {
-        if m.url_regex.is_match(path) && m.method == method {
-            if !m.memory_rate_limiter.try_acquire(path.to_string(), 1) {
-                return Err(StatusCode::TOO_MANY_REQUESTS);
+    if !URL_LIMITER_MAP.is_empty() {
+        for m in URL_LIMITER_MAP.iter() {
+            if m.url_regex.is_match(path) && m.method == method {
+                if !m.memory_rate_limiter.try_acquire(path.to_string(), 1) {
+                    return Err(StatusCode::TOO_MANY_REQUESTS);
+                }
             }
         }
     }

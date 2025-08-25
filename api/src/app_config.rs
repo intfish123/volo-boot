@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct AppConfig {
     pub port: u32,
+    pub metric_port: Option<u32>,
     pub timeout: Option<u64>,
     // 订阅服务列表
     pub subscribe_service: Vec<String>,

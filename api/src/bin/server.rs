@@ -6,6 +6,7 @@ use pd_rs_common::load_config::LoadConfig;
 use pd_rs_common::svc::nacos::NacosNamingAndConfigData;
 use std::sync::Arc;
 use std::{net::SocketAddr, time::Duration};
+use std::collections::HashMap;
 use user::user::UserServiceClient;
 use volo_http::{
     context::ServerContext,
@@ -53,14 +54,36 @@ async fn main() {
         .unwrap(),
     );
 
-    // 注册
+    // 指标抓取端口
+    let metric_port = app_config.metric_port.unwrap_or(app_config.port);
+    let mut need_standard_metrics = false;
+    if metric_port != app_config.port {
+        need_standard_metrics = true;
+        // 注册用于抓取指标的服务实例
+        let _metrics_nacos_svc_inst = nacos_naming_data
+            .register_service(
+                nacos_config.service_name.clone() + "_metrics",
+                metric_port as i32,
+                None,
+                None,
+                Default::default(),
+            )
+            .await;
+    }
+
+    // 注册基础服务
+    let mut meta_map = HashMap::<String, String>::new();
+    // 如果metrics端口是单独的则, 需要屏蔽服务端口的指标抓取
+    if need_standard_metrics {
+        meta_map.insert("disable_metrics".to_string(), "true".to_string());
+    }
     let _nacos_svc_inst = nacos_naming_data
         .register_service(
             nacos_config.service_name.clone(),
             app_config.port as i32,
             None,
             None,
-            Default::default(),
+            meta_map,
         )
         .await;
 
@@ -91,9 +114,20 @@ async fn main() {
         Err(e) => tracing::error!("add config listener err: {}", e),
     }
 
+    if need_standard_metrics {
+        tokio::spawn(async move {
+            // 启动metrics端口
+            let addr: SocketAddr = format!("[::]:{}", metric_port).parse().unwrap();
+            let addr = Address::from(addr);
+
+            tracing::info!("Metrics port listening on {addr}");
+            Server::new(router::build_metrics_router()).run(addr).await.unwrap();
+        });
+    }
+
     // 启动http服务
-    let app = Router::new()
-        .merge(router::build_router(service_context))
+    let biz_app = Router::new()
+        .merge(router::build_biz_router(service_context, !need_standard_metrics))
         .layer(TimeoutLayer::new(
             Duration::from_secs(app_config.timeout.unwrap_or(10)),
             timeout_handler,
@@ -102,9 +136,9 @@ async fn main() {
     let addr: SocketAddr = format!("[::]:{}", app_config.port).parse().unwrap();
     let addr = Address::from(addr);
 
-    tracing::info!("Listening on {addr}");
+    tracing::info!("Listening on {addr}, need standard metrics is {need_standard_metrics}");
 
-    Server::new(app).run(addr).await.unwrap();
+    Server::new(biz_app).run(addr).await.unwrap();
 }
 
 async fn subscribe_service(
