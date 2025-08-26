@@ -44,6 +44,30 @@ async fn main() {
         .unwrap(),
     );
 
+    // 优雅停机
+    let (shutdown_tx, mut shutdown_rx) = tokio::sync::watch::channel(());
+
+    // 考虑到pod滚动更新时服务可用性，新pod应该先让grpc服务之后，再往nacos中注册，这样nacos中的pod是立即可用的
+    // 旧pod应该先从nacos中下线，然后再停止grpc服务
+
+    // 先启动服务
+    let server_task = tokio::spawn(async move {
+        Server::new()
+            .add_service(
+                ServiceBuilder::new(user_volo_gen::user::UserServiceServer::new(S)).build(),
+            )
+            .run_with_shutdown(addr, async {
+                let _ = shutdown_rx.changed().await;
+                Ok(())
+            })
+            .await
+            .unwrap()
+    });
+
+    // 等待3秒，让服务启动起来
+    tokio::time::sleep(Duration::from_secs(3)).await;
+
+    // 3秒之后再往nacos中注册
     let nacos_svc_inst = nacos_naming_data
         .register_service(
             nacos_config.service_name,
@@ -53,9 +77,6 @@ async fn main() {
             Default::default(),
         )
         .await;
-
-    // 优雅停机
-    let (shutdown_tx, mut shutdown_rx) = tokio::sync::watch::channel(());
 
     let signal_task = tokio::spawn(async move {
         let mut term = signal::unix::signal(signal::unix::SignalKind::terminate())
@@ -73,19 +94,6 @@ async fn main() {
         }
         shutdown_tx.send(()).ok();
         Ok::<_, anyhow::Error>(())
-    });
-
-    let server_task = tokio::spawn(async move {
-        Server::new()
-            .add_service(
-                ServiceBuilder::new(user_volo_gen::user::UserServiceServer::new(S)).build(),
-            )
-            .run_with_shutdown(addr, async {
-                let _ = shutdown_rx.changed().await;
-                Ok(())
-            })
-            .await
-            .unwrap()
     });
 
     let _tasks = tokio::join!(server_task, signal_task);
