@@ -76,10 +76,10 @@ async fn main() {
             .unwrap()
     });
 
-    // 等待3秒，让服务启动起来
-    tokio::time::sleep(Duration::from_secs(3)).await;
+    // 等待n秒，让服务启动起来
+    tokio::time::sleep(Duration::from_secs(1)).await;
 
-    // 3秒之后再往nacos中注册
+    // 之后再往nacos中注册
     let nacos_svc_inst = nacos_naming_data
         .register_service(
             nacos_config.service_name,
