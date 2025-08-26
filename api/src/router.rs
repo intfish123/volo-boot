@@ -13,7 +13,10 @@ use volo_http::{
 // metrics路由
 pub fn build_metrics_router() -> Router {
     let record_handler = setup_metrics_recorder();
-    Router::new().route("/metrics", get(move || ready(record_handler.render())))
+    Router::new()
+        .route("/metrics", get(move || ready(record_handler.render())))
+        .layer(middleware::from_fn(track_metrics))
+        .layer(middleware::map_response(headers_map_response))
 }
 // 业务相关路由
 pub fn build_biz_router(cxt: ServiceContext, with_metrics: bool) -> Router {
