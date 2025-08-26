@@ -723,9 +723,9 @@ checksum = "37909eebbb50d72f9059c3b6d82c0463f2ff062c9e95845c43a6c9c0355411be"
 
 [[package]]
 name = "faststr"
-version = "0.2.31"
+version = "0.2.32"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a6503af7917fea18ffef8f7e8553fb8dff89e2e6837e94e09dd7fb069c82d62c"
+checksum = "baec6a0289d7f1fe5665586ef7340af82e3037207bef60f5785e57569776f0c8"
 dependencies = [
  "bytes",
  "rkyv",
@@ -2098,9 +2098,9 @@ checksum = "df94ce210e5bc13cb6651479fa48d14f601d9858cfe0467f43ae157023b938d3"
 
 [[package]]
 name = "pd-rs-common"
-version = "0.2.0"
+version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0fcd2247914d6ee958a16ee28a3ae665a98667e7571fffd8e3fb63456dffa619"
+checksum = "35e7178392b86d42198fa0f226828f1004938d8a648b55ac09febdfe5045f631"
 dependencies = [
  "anyhow",
  "async-broadcast",
