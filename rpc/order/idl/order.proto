@@ -15,6 +15,12 @@ message GetOrderRequest {
   optional int64 user_id = 2;
 }
 
+message GetRandomReq {}
+message RandomResp {
+  int64 data = 1;
+}
+
 service OrderService {
   rpc GetOrder(GetOrderRequest) returns (Order);
+  rpc GetRandom(GetRandomReq) returns (RandomResp);
 }

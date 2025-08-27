@@ -1,6 +1,6 @@
 use crate::controller::R;
 use crate::ServiceContext;
-use order::order::{GetOrderRequest, Order};
+use order::order::{GetOrderRequest, GetRandomReq, Order};
 use volo_http::request::Request;
 use volo_http::{http::StatusCode, server::extract::Query, utils::Extension};
 
@@ -68,6 +68,26 @@ pub async fn get_order(
         Ok(u) => R::ok(u.into_inner()),
         Err(e) => {
             tracing::error!("get_order error: {:?}", e);
+            R::server_error(e.message())
+        }
+    }
+}
+
+pub async fn get_order_random(
+    Extension(ctx): Extension<ServiceContext>,
+    Query(_param): Query<serde_json::Value>,
+    _req: Request,
+) -> R<i64> {
+    // 如果 order rpc 服务为空，直接返回错误码
+    let Some(rpc_cli) = ctx.rpc_cli_order else {
+        return R::error_status_code(StatusCode::GONE, "Gone");
+    };
+
+    let ret = rpc_cli.get_random(GetRandomReq {}).await;
+    match ret {
+        Ok(u) => R::ok(u.into_inner().data),
+        Err(e) => {
+            tracing::error!("get_order_random error: {:?}", e);
             R::server_error(e.message())
         }
     }

@@ -33,6 +33,10 @@ pub fn build_biz_router(cxt: ServiceContext, with_metrics: bool) -> Router {
         "/order/query-one",
         get(controller::order_controller::get_order),
     )
+    .route(
+        "/order/random",
+        get(controller::order_controller::get_order_random),
+    )
     .route("/random", get(controller::random_controller::get_random))
     .layer(middleware::from_fn(track_metrics))
     .layer(middleware::from_fn(do_rate_limiter))

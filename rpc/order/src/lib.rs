@@ -1,4 +1,7 @@
 pub use order_volo_gen::order;
+use order_volo_gen::order::{GetRandomReq, RandomResp};
+use rand::Rng;
+use volo_grpc::{Request};
 
 pub mod app_config;
 
@@ -44,5 +47,16 @@ impl order_volo_gen::order::OrderService for S {
                 "id 和 user_id 不能同时为空",
             ));
         }
+    }
+
+    async fn get_random(
+        &self,
+        _req: Request<GetRandomReq>,
+    ) -> std::result::Result<
+        ::volo_grpc::Response<order_volo_gen::order::RandomResp>,
+        ::volo_grpc::Status,
+    > {
+        let r = rand::rng().random::<i64>();
+        return Ok(volo_grpc::Response::new(RandomResp { data: r }));
     }
 }
