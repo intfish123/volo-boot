@@ -31,6 +31,7 @@ mur3="0.1"
 # rpc客户端引用
 user = {path = "../rpc/user"}
 order = {path = "../rpc/order"}
+rand = "0.9"
 
 [profile.release]
 opt-level = 3

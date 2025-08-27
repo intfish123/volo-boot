@@ -6,6 +6,7 @@ use volo::loadbalance::RequestHash;
 use volo::METAINFO;
 use volo_http::request::Request;
 use volo_http::{http::StatusCode, server::extract::Query, utils::Extension};
+use rand::prelude::*;
 
 /// 通过id获取用户实体
 pub async fn get_user(
@@ -32,7 +33,13 @@ pub async fn get_user(
     // 如果 load_balance 用的ConsistentHashBalance, 则需要在本地变量（类似于java中的ThreadLocal变量）设置RequestHash
     // 每个请求会自动创建本地变量 METAINFO, 然后在自己的方法里面直接用就行, 参考: https://docs.rs/tokio/latest/tokio/task/struct.LocalKey.html
     METAINFO.with(|m| {
-        let bytes = bincode::encode_to_vec(id, BINCODE_CONFIG_STANDARD).unwrap();
+        // 使用user_id进行hash
+        // let bytes = bincode::encode_to_vec(id, BINCODE_CONFIG_STANDARD).unwrap();
+
+        // 随机数
+        let random_id = rand::rng().random::<i32>();
+        let bytes = bincode::encode_to_vec(random_id, BINCODE_CONFIG_STANDARD).unwrap();
+
         let hash = mur3::murmurhash3_x64_128(bytes.as_slice(), 0).0;
         m.borrow_mut().insert(RequestHash(hash));
     });
