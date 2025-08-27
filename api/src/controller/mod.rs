@@ -23,7 +23,7 @@ impl<T> R<T> {
     pub fn ok(data: T) -> Self {
         Self {
             code: 200,
-            msg: Some("success".to_string()),
+            msg: None,
             data: Some(data),
         }
     }
