@@ -14,7 +14,7 @@ impl order_volo_gen::order::OrderService for S {
         ::volo_grpc::Status,
     > {
         let req_data = _req.into_inner();
-        tracing::info!("get_order: {:?}", req_data);
+        tracing::info!("获取订单: {:?}", req_data);
 
         if let Some(req_id) = req_data.id {
             // 虚假数据

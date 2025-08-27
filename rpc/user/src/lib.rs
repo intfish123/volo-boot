@@ -10,7 +10,7 @@ impl user::UserService for S {
         _req: volo_grpc::Request<user::GetUserRequest>,
     ) -> Result<volo_grpc::Response<user::User>, volo_grpc::Status> {
         let req_data = _req.into_inner();
-        tracing::info!("get_user: {:?}", req_data);
+        tracing::info!("获取用户: {:?}", req_data);
         if let None = req_data.id {
             return Err(volo_grpc::Status::not_found("User not found"));
         }
