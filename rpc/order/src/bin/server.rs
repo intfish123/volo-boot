@@ -33,7 +33,7 @@ async fn main() {
     let args = Args::parse();
 
     // 这里不要使用 `let _ = xxx;` 的形式来接受返回结果，避免被立即drop掉导致日志声明周期有问题
-    let _logger_guard = pd_rs_common::logger::init_tracing(Some(2));
+    let _logger_guard = pd_rs_common::logger::init_tracing(Some(2), None);
 
     let config_file_path = args.config;
     let app_config = AppConfig::load_toml(config_file_path.as_str()).unwrap();
