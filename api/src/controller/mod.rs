@@ -7,6 +7,7 @@ use volo_http::server::extract::Json;
 use volo_http::server::IntoResponse;
 
 pub mod order_controller;
+pub mod random_controller;
 pub mod user_controller;
 
 /// 业务响应数据 `R`

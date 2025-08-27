@@ -28,10 +28,12 @@ pub fn build_biz_router(cxt: ServiceContext, with_metrics: bool) -> Router {
     r.route(
         "/user/query-one",
         get(controller::user_controller::get_user),
-    ).route(
+    )
+    .route(
         "/order/query-one",
         get(controller::order_controller::get_order),
     )
+    .route("/random", get(controller::random_controller::get_random))
     .layer(middleware::from_fn(track_metrics))
     .layer(middleware::from_fn(do_rate_limiter))
     .layer(middleware::map_response(headers_map_response))

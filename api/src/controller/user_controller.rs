@@ -1,12 +1,12 @@
 use crate::consts::BINCODE_CONFIG_STANDARD;
 use crate::controller::R;
 use crate::ServiceContext;
+use rand::prelude::*;
 use user::user::{GetUserRequest, User};
 use volo::loadbalance::RequestHash;
 use volo::METAINFO;
 use volo_http::request::Request;
 use volo_http::{http::StatusCode, server::extract::Query, utils::Extension};
-use rand::prelude::*;
 
 /// 通过id获取用户实体
 pub async fn get_user(

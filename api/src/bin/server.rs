@@ -4,9 +4,9 @@ use clap::Parser;
 use order::order::OrderServiceClient;
 use pd_rs_common::load_config::LoadConfig;
 use pd_rs_common::svc::nacos::NacosNamingAndConfigData;
+use std::collections::HashMap;
 use std::sync::Arc;
 use std::{net::SocketAddr, time::Duration};
-use std::collections::HashMap;
 use user::user::UserServiceClient;
 use volo_http::{
     context::ServerContext,
@@ -121,13 +121,19 @@ async fn main() {
             let addr = Address::from(addr);
 
             tracing::info!("Metrics port listening on {addr}");
-            Server::new(router::build_metrics_router()).run(addr).await.unwrap();
+            Server::new(router::build_metrics_router())
+                .run(addr)
+                .await
+                .unwrap();
         });
     }
 
     // 启动http服务
     let biz_app = Router::new()
-        .merge(router::build_biz_router(service_context, !need_standard_metrics))
+        .merge(router::build_biz_router(
+            service_context,
+            !need_standard_metrics,
+        ))
         .layer(TimeoutLayer::new(
             Duration::from_secs(app_config.timeout.unwrap_or(10)),
             timeout_handler,
