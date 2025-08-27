@@ -1,6 +1,6 @@
 # 服务运行端口
 port=8081
-
+disable_metrics=true
 # 服务发现 server discover
 [sd]
 [sd.nacos]

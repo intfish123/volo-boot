@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct AppConfig {
     pub port: u32,
+    pub disable_metrics: bool,
     pub sd: ServerDiscover,
 }
 #[derive(Debug, Clone, Deserialize, Serialize)]

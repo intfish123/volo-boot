@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use anyhow::anyhow;
 use clap::Parser;
 use pd_rs_common::load_config::LoadConfig;
@@ -68,13 +69,17 @@ async fn main() {
     tokio::time::sleep(Duration::from_secs(1)).await;
 
     // 之后再往nacos中注册
+    let mut meta_map = HashMap::<String, String>::new();
+    if app_config.disable_metrics {
+        meta_map.insert("disable_metrics".to_string(), "true".to_string());
+    }
     let nacos_svc_inst = nacos_naming_data
         .register_service(
             nacos_config.service_name,
             app_config.port as i32,
             None,
             None,
-            Default::default(),
+            meta_map,
         )
         .await;
 
