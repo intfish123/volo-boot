@@ -72,6 +72,7 @@ async fn main() {
             .http2_init_stream_window_size(2 * 1024 * 1024u32)
             // 发送缓冲区：2MB（匹配流窗口大小）
             .http2_max_send_buf_size(2 * 1024 * 1024usize)
+            .http2_max_concurrent_streams(None)
             .add_service(
                 ServiceBuilder::new(order_volo_gen::order::OrderServiceServer::new(S)).build(),
             )
