@@ -190,13 +190,13 @@ async fn subscribe_service(
                                         Default::default(),
                                     ),
                                 )
-                                .http2_max_frame_size(32 * 1024u32)
-                                .http2_init_stream_window_size(8 * 1024 * 1024u32)
-                                .http2_init_connection_window_size(16 * 1024 * 1024u32)
-                                .http2_adaptive_window(false)
-                                .http2_keepalive_while_idle(true)
+                                // .http2_max_frame_size(32 * 1024u32)
+                                // .http2_init_stream_window_size(8 * 1024 * 1024u32)
+                                // .http2_init_connection_window_size(16 * 1024 * 1024u32)
+                                // .http2_adaptive_window(false)
+                                // .http2_keepalive_while_idle(true)
                                 .http2_max_concurrent_reset_streams(50usize)
-                                .connect_timeout(Duration::from_millis(500))
+                                // .connect_timeout(Duration::from_millis(500))
                                 .build();
                         ret.rpc_cli_user.push(user_client);
                     }
@@ -205,13 +205,13 @@ async fn subscribe_service(
                             order::order::OrderServiceClientBuilder::new(svc_name.clone())
                                 .discover(discover.clone())
                                 .load_balance(volo::loadbalance::random::WeightedRandomBalance::new())
-                                .http2_max_frame_size(32 * 1024u32)
-                                .http2_init_stream_window_size(8 * 1024 * 1024u32)
-                                .http2_init_connection_window_size(16 * 1024 * 1024u32)
-                                .http2_adaptive_window(false)
-                                .http2_keepalive_while_idle(true)
+                                // .http2_max_frame_size(32 * 1024u32)
+                                // .http2_init_stream_window_size(8 * 1024 * 1024u32)
+                                // .http2_init_connection_window_size(16 * 1024 * 1024u32)
+                                // .http2_adaptive_window(false)
+                                // .http2_keepalive_while_idle(true)
                                 .http2_max_concurrent_reset_streams(50usize)
-                                .connect_timeout(Duration::from_millis(500))
+                                // .connect_timeout(Duration::from_millis(500))
                                 .build();
                         ret.rpc_cli_order.push(order_client);
                     }
