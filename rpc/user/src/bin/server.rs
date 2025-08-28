@@ -55,12 +55,12 @@ async fn main() {
     let server_task = tokio::spawn(async move {
         Server::new()
             // 连接级窗口：20MB（连接级窗口 / 流级窗口 = 并发流数量），默认1MB
-            // .http2_init_connection_window_size(20 * 1024 * 1024u32)
+            .http2_init_connection_window_size(20 * 1024 * 1024u32)
             // 流级窗口：2MB（适应中等大小消息）
-            // .http2_init_stream_window_size(2 * 1024 * 1024u32)
+            .http2_init_stream_window_size(2 * 1024 * 1024u32)
             // 发送缓冲区：2MB（匹配流窗口大小）
-            // .http2_max_send_buf_size(2 * 1024 * 1024usize)
-            // .http2_max_concurrent_streams(None)
+            .http2_max_send_buf_size(2 * 1024 * 1024usize)
+            .http2_max_concurrent_streams(None)
             .add_service(
                 ServiceBuilder::new(user_volo_gen::user::UserServiceServer::new(S)).build(),
             )
