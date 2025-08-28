@@ -1,3 +1,4 @@
+use rand::Rng;
 use crate::controller::R;
 use crate::ServiceContext;
 use order::order::{GetOrderRequest, GetRandomReq, Order};
@@ -10,10 +11,10 @@ pub async fn get_order(
     Query(param): Query<serde_json::Value>,
     _req: Request,
 ) -> R<Order> {
-    // 如果 order rpc 服务为空，直接返回错误码
-    let Some(rpc_cli) = ctx.rpc_cli_order else {
+    if ctx.rpc_cli_order.is_empty() {
         return R::error_status_code(StatusCode::GONE, "Gone");
-    };
+    }
+    let rpc_cli = &ctx.rpc_cli_order[rand::rng().random_range(..ctx.rpc_cli_order.len())];
 
     // 获取参数
     let id = param.get("id");
@@ -78,10 +79,10 @@ pub async fn get_order_random(
     Query(_param): Query<serde_json::Value>,
     _req: Request,
 ) -> R<i64> {
-    // 如果 order rpc 服务为空，直接返回错误码
-    let Some(rpc_cli) = ctx.rpc_cli_order else {
+    if ctx.rpc_cli_order.is_empty() {
         return R::error_status_code(StatusCode::GONE, "Gone");
-    };
+    }
+    let rpc_cli = &ctx.rpc_cli_order[rand::rng().random_range(..ctx.rpc_cli_order.len())];
 
     let ret = rpc_cli.get_random(GetRandomReq {}).await;
     match ret {

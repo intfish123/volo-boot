@@ -158,7 +158,17 @@ async fn subscribe_service(
 
         tracing::info!("subscribe services: {}", service_names.join(", "));
         for sub_svc in service_names {
-            let sub_ret = nacos_naming_data.subscribe_service(sub_svc.clone()).await;
+            // 构建grpc客户端
+            let mut svc_name = sub_svc.clone();
+            let mut rpc_client_num = 1;
+            let split = sub_svc.split(":").collect::<Vec<&str>>();
+            if split.len() >= 2 {
+                svc_name = split[0].trim().to_string();
+                rpc_client_num = split[1].trim().parse::<i32>().unwrap();
+            }
+
+
+            let sub_ret = nacos_naming_data.subscribe_service(svc_name.clone()).await;
             match sub_ret {
                 Ok(_) => {
                     tracing::info!("subscribe service: {} success.", sub_svc.clone());
@@ -168,45 +178,47 @@ async fn subscribe_service(
                 }
             }
 
-            // 构建grpc客户端
-            match sub_svc.as_str() {
-                consts::RPC_USER_KEY => {
-                    let user_client: UserServiceClient =
-                        user::user::UserServiceClientBuilder::new(sub_svc)
-                            .discover(discover.clone())
-                            // .load_balance(volo::loadbalance::random::WeightedRandomBalance::new())
-                            .load_balance(
-                                volo::loadbalance::consistent_hash::ConsistentHashBalance::new(
-                                    Default::default(),
-                                ),
-                            )
-                            .http2_max_frame_size(32 * 1024u32)
-                            .http2_init_stream_window_size(8 * 1024 * 1024u32)
-                            .http2_init_connection_window_size(16 * 1024 * 1024u32)
-                            .http2_adaptive_window(false)
-                            .http2_keepalive_while_idle(true)
-                            .http2_max_concurrent_reset_streams(50usize)
-                            .connect_timeout(Duration::from_millis(500))
-                            .build();
-                    ret.rpc_cli_user = Some(user_client);
+            for _ in 0..rpc_client_num {
+                match svc_name.as_str() {
+                    consts::RPC_USER_KEY => {
+                        let user_client: UserServiceClient =
+                            user::user::UserServiceClientBuilder::new(svc_name.clone())
+                                .discover(discover.clone())
+                                // .load_balance(volo::loadbalance::random::WeightedRandomBalance::new())
+                                .load_balance(
+                                    volo::loadbalance::consistent_hash::ConsistentHashBalance::new(
+                                        Default::default(),
+                                    ),
+                                )
+                                .http2_max_frame_size(32 * 1024u32)
+                                .http2_init_stream_window_size(8 * 1024 * 1024u32)
+                                .http2_init_connection_window_size(16 * 1024 * 1024u32)
+                                .http2_adaptive_window(false)
+                                .http2_keepalive_while_idle(true)
+                                .http2_max_concurrent_reset_streams(50usize)
+                                .connect_timeout(Duration::from_millis(500))
+                                .build();
+                        ret.rpc_cli_user.push(user_client);
+                    }
+                    consts::RPC_ORDER_KEY => {
+                        let order_client: OrderServiceClient =
+                            order::order::OrderServiceClientBuilder::new(svc_name.clone())
+                                .discover(discover.clone())
+                                .load_balance(volo::loadbalance::random::WeightedRandomBalance::new())
+                                .http2_max_frame_size(32 * 1024u32)
+                                .http2_init_stream_window_size(8 * 1024 * 1024u32)
+                                .http2_init_connection_window_size(16 * 1024 * 1024u32)
+                                .http2_adaptive_window(false)
+                                .http2_keepalive_while_idle(true)
+                                .http2_max_concurrent_reset_streams(50usize)
+                                .connect_timeout(Duration::from_millis(500))
+                                .build();
+                        ret.rpc_cli_order.push(order_client);
+                    }
+                    _ => {}
                 }
-                consts::RPC_ORDER_KEY => {
-                    let order_client: OrderServiceClient =
-                        order::order::OrderServiceClientBuilder::new(sub_svc)
-                            .discover(discover.clone())
-                            .load_balance(volo::loadbalance::random::WeightedRandomBalance::new())
-                            .http2_max_frame_size(32 * 1024u32)
-                            .http2_init_stream_window_size(8 * 1024 * 1024u32)
-                            .http2_init_connection_window_size(16 * 1024 * 1024u32)
-                            .http2_adaptive_window(false)
-                            .http2_keepalive_while_idle(true)
-                            .http2_max_concurrent_reset_streams(50usize)
-                            .connect_timeout(Duration::from_millis(500))
-                            .build();
-                    ret.rpc_cli_order = Some(order_client);
-                }
-                _ => {}
             }
+
         }
     }
 

@@ -4,7 +4,7 @@ disable_metrics=true
 # 服务发现 server discover
 [sd]
 [sd.nacos]
-server_addr="10.64.133.21:8848"
+server_addr="10.30.160.37:8848"
 namespace="public"
 username=""
 password=""

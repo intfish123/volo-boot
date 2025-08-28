@@ -14,9 +14,10 @@ pub async fn get_user(
     Query(param): Query<serde_json::Value>,
     _req: Request,
 ) -> R<User> {
-    let Some(rpc_cli) = ctx.rpc_cli_user else {
+    if ctx.rpc_cli_user.is_empty() {
         return R::error_status_code(StatusCode::GONE, "Gone");
-    };
+    }
+    let rpc_cli = &ctx.rpc_cli_user[rand::rng().random_range(..ctx.rpc_cli_user.len())];
 
     let Some(id) = param.get("id") else {
         return R::error_status_code(StatusCode::BAD_REQUEST, "id 不能为空");

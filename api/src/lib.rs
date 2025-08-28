@@ -13,6 +13,6 @@ use user::user::UserServiceClient;
 /// 这个结构体里面放每个rpc的客户端
 #[derive(Clone, Default)]
 pub struct ServiceContext {
-    pub rpc_cli_user: Option<UserServiceClient>,
-    pub rpc_cli_order: Option<OrderServiceClient>,
+    pub rpc_cli_user: Vec<UserServiceClient>,
+    pub rpc_cli_order: Vec<OrderServiceClient>,
 }
