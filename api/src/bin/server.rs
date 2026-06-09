@@ -1,5 +1,5 @@
 use api::rate_limiter::{init_limiter, RateLimiterConfigListener, DEFAULT_GROUP};
-use api::{consts, router, svc_discover, ServiceContext};
+use api::{consts, router, ServiceContext};
 use clap::Parser;
 use order::order::OrderServiceClient;
 use pd_rs_common::load_config::LoadConfig;
@@ -154,7 +154,7 @@ async fn subscribe_service(
     let mut ret: ServiceContext = Default::default();
 
     if !service_names.is_empty() {
-        let discover = svc_discover::NacosDiscover::new(nacos_naming_data.clone());
+        let discover = volo_nacos_discover::NacosDiscover::new(nacos_naming_data.clone());
 
         tracing::info!("subscribe services: {}", service_names.join(", "));
         for sub_svc in service_names {

@@ -2,8 +2,6 @@ pub mod app_config;
 pub mod consts;
 pub mod prometheus;
 pub mod router;
-pub mod svc_discover;
-
 pub mod controller;
 pub mod rate_limiter;
 
