@@ -1,4 +1,4 @@
-FROM rust:1.87.0-alpine3.21 AS builder
+FROM rust:alpine3.23 AS builder
 WORKDIR /usr/src/app
 RUN set -eux && sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories
 RUN apk update && apk add --no-cache wget alpine-sdk ca-certificates bash sudo pkgconf pkgconfig protobuf musl-dev openssl openssl-dev
@@ -25,7 +25,7 @@ COPY . .
 RUN cargo install -v --path .
 
 
-FROM alpine:3.21
+FROM alpine:3.23
 WORKDIR /
 RUN set -eux && sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories
 RUN apk update && apk add --no-cache nmap nmap-scripts wget alpine-sdk ca-certificates git bash sudo tzdata pkgconf pkgconfig
